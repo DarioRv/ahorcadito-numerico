@@ -22,7 +22,7 @@ typedef int t_numero[digitos];
 // MENU PRINCIPAL
 void administracionJugadores(t_vector jugadores, int &ocupado);
 void generarTablero(t_tablero &tableroJuego);
-void jugar(t_tablero tableroJuego, int &intentos);
+void jugar(t_tablero tableroJuego, int &intentos, int i, int j);
 
 
 //SUBMENUS
@@ -31,9 +31,9 @@ void registrarJugador(t_vector jugadores, int &ocupado);
 void modificarDatosJugador(t_vector jugadores, int ocupado);
 void listarJugadores(t_vector jugadores, int ocupado);
 //Submenu jugar
-void probarDigitos(t_tablero tableroJuego, int intentos);
-void solicitarPista(t_tablero tableroJuego);
-//void arriesgarSolucion(t_tablero tableroJuego);
+void probarDigitos(t_tablero tableroJuego, int &i, int &j);
+void solicitarPista(t_tablero tableroJuego, int i, int j);
+void arriesgarSolucion(t_tablero tableroJuego, int &i, int &j);
 //MODULOS COMPLEMENTARIOS
 bool determinarPrimo(int numero);
 bool perteneceFibo(int numero);
@@ -47,16 +47,20 @@ int generarNumero5Cifras();
 int busquedaJugador(t_vector a, int ocupado, t_cadena buscado);
 bool verificarNumeroGenerado(int numero, int x, int i, bool &existeFibo, bool &existeCapicua, bool &existePrimo);
 bool verificarTablero(t_tablero tableroJuego);
-void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOculto);
+void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOculto, int &ocupado);
 void verificarDigito(t_numero numeroJugado, t_numero numeroOculto, int ocupado, int digitoJugado);
 void revelarNumero(t_numero numeroOriginal, t_numero numeroOculto, int ocupado, int posicionAcertada, int digitoJugado);
 bool control(t_numero numeroOriginal, t_numero numeroOculto, int ocupado);
+int seleccionarNumero(t_tablero tableroJuego, int &i, int &j);
+void SistemaPuntaje();
 
 main(){
     srand(time(NULL));
     t_vector jugadores; int ocupado = -1;
     t_tablero tableroJuego; int intentos=5;
     int opcionElegida;
+    int i, j;
+    bool tableroGenerado = false;
     do{
         system("cls");
         cout << "********* A H O R C A D I T O *********" << endl;
@@ -81,9 +85,17 @@ main(){
                     cout<<endl;
                 }
                 system("pause");
+                tableroGenerado = true;
                 break;
             case 3:
-                jugar(tableroJuego, intentos);
+                if (tableroGenerado == true){
+                    jugar(tableroJuego, intentos, i, j);
+                    tableroGenerado = false;
+                }
+                else{
+                    cout << "El tablero no fue generado" << endl;
+                    system("pause");
+                }
                 break;
             case 5:
                 cout << "Fin de juego" << endl;
@@ -165,11 +177,14 @@ void generarTablero(t_tablero &tableroJuego){
             }while(verificarNumeroGenerado(tableroJuego[x][i], x, i, existeFibo2, existeCapicua2, existePrimo2) == false);
         }
     }
+    cout << "El tablero ha sido generado" << endl;
+    cout << "Puede comenzar el juego" << endl;
 }
-void jugar(t_tablero tableroJuego, int &intentos){
+void jugar(t_tablero tableroJuego, int &intentos, int i, int j){
     int opcionElegida;
+    i=0, j=0;
     do{
-        system("cls");
+        system("cls");  
         cout << "************* JUGAR *************" << endl;
         cout << "1. Probar digitos" << endl;
         cout << "2. Solicitar pistas" << endl;
@@ -180,13 +195,13 @@ void jugar(t_tablero tableroJuego, int &intentos){
         cin >> opcionElegida;
         switch(opcionElegida){
             case 1:
-                //probarDigitos(numeroJugado);
+                probarDigitos(tableroJuego, i, j);
                 break;
             case 2:
-                //solicitarPista(tableroJuego);
+                solicitarPista(tableroJuego, i, j);
                 break;
             case 3:
-                //arriesgarSolucion(tableroJuego);
+                arriesgarSolucion(tableroJuego, i, j);
                 break;
             case 4:
                 cout << "Volviendo al menu principal" << endl;
@@ -274,15 +289,22 @@ void listarJugadores(t_vector jugadores, int ocupado){
     system("pause");
 }
 //Submenu jugar
-void probarDigitos(int numeroJugado){
+void probarDigitos(t_tablero tableroJuego, int &i, int &j){
     t_numero numeroOriginal, numeroOculto;
-    int ocupado = 4;
+    int numeroJugado, ocupado;
+    numeroJugado = seleccionarNumero(tableroJuego, i, j);
+    ocultarNumero(numeroJugado, numeroOriginal, numeroOculto, ocupado);
+    cout << "El numero jugado actual es: " << numeroJugado << endl;
+    
     char eleccion;
-    ocultarNumero(numeroJugado, numeroOriginal, numeroOculto);
     int digitoJugado;
     do{
+        do{
         cout << "Ingrese numero: ";
         cin >> digitoJugado;
+        if (digitoJugado < 0 || digitoJugado > 9)
+            cout << "Por favor, introduzca un digito del 1 al 9" << endl;
+        }while (digitoJugado < 0 || digitoJugado > 9);
         verificarDigito(numeroOriginal, numeroOculto, ocupado, digitoJugado);
         cout << "Desea probar otro numero? s/n" << endl;
         do{
@@ -292,37 +314,79 @@ void probarDigitos(int numeroJugado){
         }while(eleccion != 's' && eleccion != 'n');
 
     }while(eleccion == 's');
+
+    //Avanza solo si ya se ha acertado el numero en juego
+    if (control(numeroOriginal, numeroOculto, ocupado) == true){
+        if (i <=1 && j<=3){
+            cout << "i: " << i << " j: " << j << endl;
+            j++;
+            if (j>3){
+                j=0;
+                i++;
+            }
+        }
+    }
 }
-void solicitarPista(int numeroJuego){
-     //Numero de 5 cifras
+void solicitarPista(t_tablero tableroJuego, int i, int j){
+    int numeroJuego = tableroJuego[i][j];
+    //Pista primo
     if (determinarPrimo(numeroJuego) == true)
-        cout << "Es un numero primo" << endl;
+        cout << "El numero es primo" << endl;
+    else
+        cout << "El numero no primo" << endl;
+    //Pista fibonacci
     if (perteneceFibo(numeroJuego) == true)
-        cout << "Pertenece a la serie Fibonacci" << endl;
+        cout << "El numero pertenece a la serie Fibonacci" << endl;
+    else
+        cout << "El numero no pertenece a la serie Fibonacci" << endl;
+    //Pista capicua
     if (determinarCapicua(numeroJuego) == true)
-        cout << "Es un numero capicua" << endl;
+        cout << "El numero es capicua" << endl;
+    else
+        cout << "El numero no es capicua" << endl;
+    //Pista digitos distintos
     if (digitosDistintos(numeroJuego) == true)
         cout << "Todos sus digitos son distintos" << endl;
+    else
+        cout << "No todos sus digitos son distintos" << endl;
+    //Pista par o impar
     if (determinarPar(numeroJuego) == true)
         cout << "Es un numero par" << endl;
     else
         cout << "Es un numero impar" << endl;
+    //Pistas de 6 cifras
     if (numeroJuego >= 100000){
+        //Pista multiplo de 11
         if (multiplo11(numeroJuego) == true)
             cout << "El numero es multiplo de 11" << endl;
+        else
+            cout << "El numero no es multiplo de 11" << endl;
+        //Pista multiplo de 3
         if (multiploTres(numeroJuego) == true)
             cout << "El numero es multiplo  de 3" << endl;
+        else
+            cout << "El numero no es multiplo de 3" << endl;
     }
+    system("pause");
 }
-/*void arriesgarSolucion(t_tablero tableroJuego){
-    int numero;
+void arriesgarSolucion(t_tablero tableroJuego, int &i, int &j){
+    int numero, numeroJuego=tableroJuego[i][j];
     cout << "Ingrese la solucion" << endl;
     cin >> numero;
     if (numero == numeroJuego)
         cout << "Acerto" << endl;
+        if (i <=1 && j<=3){
+            cout << "i: " << i << " j: " << j << endl;
+            j++;
+            if (j>3){
+                j=0;
+                i++;
+            }
+        }
     else
         cout << "No acerto" << endl;
-}*/
+    system("pause");
+}
 //MODULOS COMPLEMENTARIOS
 bool determinarPrimo(int numero){
     int cantidadDivisores = 1;
@@ -381,7 +445,6 @@ bool multiplo11(int num){
             i = i + 1;
         } while (!finalizacion);
         diferencia = abs(sumaPar - sumaImpar);
-        cout << "|" << sumaPar << " - " << sumaImpar << "| = " << diferencia << endl;
         if (diferencia > 9){
             unDigito = false;
             num = diferencia;
@@ -554,7 +617,7 @@ bool verificarTablero(t_tablero tableroJuego){
     else
         return false;
 }
-void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOculto){
+void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOculto, int &ocupado){
     /* Este procedimiento coloca los digitos en un vector para ir mostrandolos
        uno por uno una vez acertados, mediante el calculo del
        inverso y digito*/
@@ -571,6 +634,7 @@ void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOc
         numeroOriginal[i] = digito;
         
     }
+    ocupado = i;
     for (int x=0; x<=i; x++){
         numeroOculto[x] = '_';
         cout << "_ ";
@@ -628,4 +692,7 @@ bool control(t_numero numeroOriginal, t_numero numeroOculto, int ocupado){
         return true;
     else
         return false;
+}
+int seleccionarNumero(t_tablero tableroJuego, int &i, int &j){
+        return tableroJuego[i][j];
 }
