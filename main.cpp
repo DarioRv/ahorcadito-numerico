@@ -33,7 +33,7 @@ void listarJugadores(t_vector jugadores, int ocupado);
 //Submenu jugar
 void probarDigitos(t_tablero tableroJuego, int intentos);
 void solicitarPista(t_tablero tableroJuego);
-void arriesgarSolucion(t_tablero tableroJuego);
+//void arriesgarSolucion(t_tablero tableroJuego);
 //MODULOS COMPLEMENTARIOS
 bool determinarPrimo(int numero);
 bool perteneceFibo(int numero);
@@ -44,6 +44,7 @@ bool digitosDistintos(int numero);
 bool determinarPar(int numero);
 int generarNumero6Cifras();
 int generarNumero5Cifras();
+int busquedaJugador(t_vector a, int ocupado, t_cadena buscado);
 bool verificarTablero(t_tablero tableroJuego);
 void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOculto);
 void verificarDigito(t_numero numeroJugado, t_numero numeroOculto, int ocupado, int digitoJugado);
@@ -57,39 +58,39 @@ main(){
     int opcionElegida;
     do{
         system("cls");
-    cout << "********* A H O R C A D I T O *********" << endl;
-    cout << "1. Administrar jugadores" << endl;
-    cout << "2. Generar tablero de juego" << endl;
-    cout << "3. Jugar" << endl;
-    cout << "4. Ranking de jugadores" << endl;
-    cout << "5. Salir" << endl;
-    cout << "***************************************" << endl;
-    cout << "Elija una opcion: ";
-    cin >> opcionElegida;
-    switch(opcionElegida){
-        case 1:
-            administracionJugadores(jugadores, ocupado);
-            break;
-        case 2:
-            generarTablero(tableroJuego);
-            for (int i=0; i<FILAS; i++){
-                for (int j=0; j<COLUMNAS; j++){
-                    cout << tableroJuego[i][j] << ", ";
+        cout << "********* A H O R C A D I T O *********" << endl;
+        cout << "1. Administrar jugadores" << endl;
+        cout << "2. Generar tablero de juego" << endl;
+        cout << "3. Jugar" << endl;
+        cout << "4. Ranking de jugadores" << endl;
+        cout << "5. Salir" << endl;
+        cout << "***************************************" << endl;
+        cout << "Elija una opcion: ";
+        cin >> opcionElegida;
+        switch(opcionElegida){
+            case 1:
+                administracionJugadores(jugadores, ocupado);
+                break;
+            case 2:
+                generarTablero(tableroJuego);
+                for (int i=0; i<FILAS; i++){
+                    for (int j=0; j<COLUMNAS; j++){
+                        cout << tableroJuego[i][j] << ", ";
+                    }
+                    cout<<endl;
                 }
-                cout<<endl;
-            }
-            system("pause");
-            break;
-        case 3:
-            jugar(tableroJuego, intentos);
-            break;
-        case 5:
-            cout << "Fin de juego" << endl;
-            break;
-        default:
-            cout << "Opcion no valida" << endl;
-            break;
-    }
+                system("pause");
+                break;
+            case 3:
+                jugar(tableroJuego, intentos);
+                break;
+            case 5:
+                cout << "Fin de juego" << endl;
+                break;
+            default:
+                cout << "Opcion no valida" << endl;
+                break;
+        }
     }while (opcionElegida != 5);
 }
 
@@ -164,13 +165,13 @@ void jugar(t_tablero tableroJuego, int &intentos){
         cin >> opcionElegida;
         switch(opcionElegida){
             case 1:
-                probarDigitos(intentos);
+                //probarDigitos(numeroJugado);
                 break;
             case 2:
-                solicitarPista(tableroJuego);
+                //solicitarPista(tableroJuego);
                 break;
             case 3:
-                arriesgarSolucion(tableroJuego);
+                //arriesgarSolucion(tableroJuego);
                 break;
             case 4:
                 cout << "Volviendo al menu principal" << endl;
@@ -211,28 +212,21 @@ void modificarDatosJugador(t_vector jugadores, int ocupado){
         cout << "Ingrese alias del jugador a modificar datos" << endl;
         fflush(stdin);
         cin >> jugadorBuscado;
-        // Realizar busqueda secuencial
-        int i=0;
-        bool jugadorEncontrado = false;
         char eleccion;
-        while(i<=ocupado && jugadorEncontrado == false){
-            if (strcmp(jugadorBuscado, jugadores[i].alias) == 0){
-                /* Si el jugador se encontro en base al alias, preguntar al usuario
-                si desea modificarlo o buscar otra coincidencia (esto es por la razon
-                de que puede aparecer mas de un jugador con el mismo alias*/
-                cout << "Se encontro el jugador con los siguientes datos" << endl;
+        int i = busquedaJugador(jugadores, ocupado, jugadorBuscado);
+        if(i != -1){
+            cout << "Se encontro el jugador con los siguientes datos" << endl;
                 cout << "Nombre: " << jugadores[i].nombre << endl;
                 cout << "Alias: " << jugadores[i].alias << endl;
                 cout << "Partidas Jugadas: " << jugadores[i].partidasJugadas << endl;
                 cout << "Puntaje: " << jugadores[i].puntaje << endl;
-                cout << "Desea modificarlo o seguir buscando jugadores? s/n" << endl;
+                cout << "Desea modificarlo? s/n" << endl;
                 do{
                     cin >> eleccion;
                     if (eleccion != 's' && eleccion != 'n')
                         cout << "Por favor, ingrese una opcion valida" << endl;
                 }while (eleccion != 's' && eleccion != 'n');
                 if (eleccion == 's'){
-                    jugadorEncontrado = true;
                     cout << "INGRESE LOS NUEVOS DATOS" << endl;
                     cout << "Nombre: ";
                     fflush(stdin);
@@ -243,13 +237,10 @@ void modificarDatosJugador(t_vector jugadores, int ocupado){
                     cout << "EDICION REALIZADO CON EXITO" << endl;
                 }
                 else
-                    i = i + 1;
-            }
-            else
-                i = i + 1;
+                    cout << "Volviendo al menu anterior" << endl;
         }
-        if (jugadorEncontrado == false)
-            cout << "No se encontraron coincidencias, fin de la busqueda" << endl;
+        else
+            cout << "No hay coincidencias" << endl;
     }
     system("pause");
 }
@@ -308,7 +299,7 @@ void solicitarPista(int numeroJuego){
             cout << "El numero es multiplo  de 3" << endl;
     }
 }
-void arriesgarSolucion(int numeroJuego){
+/*void arriesgarSolucion(t_tablero tableroJuego){
     int numero;
     cout << "Ingrese la solucion" << endl;
     cin >> numero;
@@ -316,7 +307,7 @@ void arriesgarSolucion(int numeroJuego){
         cout << "Acerto" << endl;
     else
         cout << "No acerto" << endl;
-}
+}*/
 //MODULOS COMPLEMENTARIOS
 bool determinarPrimo(int numero){
     int cantidadDivisores = 1;
@@ -324,12 +315,10 @@ bool determinarPrimo(int numero){
         if (numero % x == 0)
             cantidadDivisores = cantidadDivisores + 1;
     }
-    if (cantidadDivisores > 1){
+    if (cantidadDivisores > 1)
         return false;
-    }
-    else{
+    else
         return true;
-    }
 }
 bool perteneceFibo(int numero){
     int limite, x1=1, x2=1, serie=1;
@@ -338,14 +327,10 @@ bool perteneceFibo(int numero){
         serie = x1 + x2;
         x1 = x2;
         x2 = serie;
-        if (serie == numero){
+        if (serie == numero)
             return true;
-            break;
-        }
-        else if (serie > numero){
+        else if (serie > numero)
             return false;
-            break;
-        }
     }
 }
 bool multiplo11(int num){
@@ -468,25 +453,39 @@ bool determinarPar(int numero){
 }
 int generarNumero6Cifras(){
     int valor, valor2, random;
-    valor = rand() % 999 + 100; //Genera entre 100 y 999
-    valor2 = rand() % 999 + 100; //Genera entre 100 y 999
-    random = (valor*1000)+valor2; //Une ambos valores para formar un numero de 6 cifras
-    if (random <= 999999 && random > 99999){
-        return random;
-    }
-    else
-        generarNumero6Cifras();
+    do{
+        valor = rand() % 999 + 100; //Genera entre 100 y 999
+        valor2 = rand() % 999 + 100; //Genera entre 100 y 999
+        random = (valor*1000)+valor2; //Une ambos valores para formar un numero de 6 cifras
+        if (random <= 999999 && random > 99999){
+            return random;
+        }
+    }while(!(random <= 999999 && random > 99999));
 }
 int generarNumero5Cifras(){
     int valor, valor2, random;
-    valor = rand() % 99 + 10; //Genera entre 10 y 99
-    valor2 = rand() % 999 + 100; //Genera entre 100 y 999
-    random = (valor2*100)+valor; //Une ambos valores para formar un numero de 6 cifras
-    if (random <= 99999 && random > 9999){
-        return random;
+    do{
+        valor = rand() % 99 + 10; //Genera entre 10 y 99
+        valor2 = rand() % 999 + 100; //Genera entre 100 y 999
+        random = (valor2*100)+valor; //Une ambos valores para formar un numero de 6 cifras
+        if (random <= 99999 && random > 9999){
+            return random;
+        }
+    }while(!(random <= 99999 && random > 9999));
+}
+int busquedaJugador(t_vector a, int ocupado, t_cadena buscado){
+    /* La funcion recibe por parametros un vector, su variable ocupado
+       y el elemento buscado. Retorna el indice del elemento cuando este
+       pertenece al vector, en caso contrario retornara -1*/
+    if (strcmp(buscado, a[ocupado].alias) == 0 && ocupado > -1){
+        return ocupado;
     }
-    else
-        generarNumero5Cifras();
+    else if(ocupado > -1){
+        ocupado = ocupado - 1;
+        return busquedaJugador(a, ocupado, buscado);
+        
+    }
+    return -1;
 }
 bool verificarTablero(t_tablero tableroJuego){
     /* Funcion recibe un tablero para determinar si
@@ -578,8 +577,8 @@ void revelarNumero(t_numero numeroOriginal, t_numero numeroOculto, int ocupado, 
     }
     cout << endl;
     if (control(numeroOriginal, numeroOculto, ocupado) == true){
-        cout << "Genial, hacertaste el numero" << endl;
-        cout << "Introduce 'n' para continuar con el siguiente numero" << endl;
+        cout << "Genial, has acertado el numero" << endl;
+        cout << "Introduce 'n' para saltar al siguiente numero" << endl;
     }
 }
 bool control(t_numero numeroOriginal, t_numero numeroOculto, int ocupado){
