@@ -45,6 +45,7 @@ bool determinarPar(int numero);
 int generarNumero6Cifras();
 int generarNumero5Cifras();
 int busquedaJugador(t_vector a, int ocupado, t_cadena buscado);
+bool verificarNumeroGenerado(int numero, int x, int i, bool &existeFibo, bool &existeCapicua, bool &existePrimo);
 bool verificarTablero(t_tablero tableroJuego);
 void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOculto);
 void verificarDigito(t_numero numeroJugado, t_numero numeroOculto, int ocupado, int digitoJugado);
@@ -129,27 +130,20 @@ void administracionJugadores(t_vector jugadores, int &ocupado){
     }while (opcionElegida != 4);
 }
 void generarTablero(t_tablero &tableroJuego){
-    int i, aleatorio;
-    do{
-        for(i=0; i<FILAS; i++){
-            for (int j=0; j<COLUMNAS; j++){
-                aleatorio = rand()% 2 + 1; //Genera entre 1 y 2
-                if (i % 2 == 0){
-                    tableroJuego[i][j] = generarNumero5Cifras();
-                }
-                else{
-                    tableroJuego[i][j] = generarNumero6Cifras();
-                }
-            }
+    cout << "Generando tablero..." << endl;
+    cout << "Esto puede tardar unos segundos" << endl;
+    int aleatorio;
+    bool existeFibo2=false, existeCapicua2=false, existePrimo2=false;
+    for (int x=0; x<2; x++){
+        for (int i=0; i<4; i++){
+            do{
+                if (i % 2 == 0)
+                    tableroJuego[x][i] = generarNumero5Cifras();
+                else
+                    tableroJuego[x][i] = generarNumero6Cifras();
+            }while(verificarNumeroGenerado(tableroJuego[x][i], x, i, existeFibo2, existeCapicua2, existePrimo2) == false);
         }
-        if(verificarTablero(tableroJuego) == false)
-            cout << "Tablero no valido" << endl;
-    }while(verificarTablero(tableroJuego) == false);
-    /*if (verificarTablero(tableroJuego) == false){
-        cout << "Tablero no valido" << endl;
-        generarTablero(tableroJuego);
-    }*/
-    cout << "Tablero valido" << endl;
+    }
 }
 void jugar(t_tablero tableroJuego, int &intentos){
     int opcionElegida;
@@ -487,6 +481,29 @@ int busquedaJugador(t_vector a, int ocupado, t_cadena buscado){
     }
     return -1;
 }
+bool verificarNumeroGenerado(int numero, int x, int i, bool &existeFibo2, bool &existeCapicua2, bool &existePrimo2){
+    if (perteneceFibo(numero) == true){
+        existeFibo2 = true;
+        return true;
+    }
+    else if (x >= 1 && existeFibo2 == false){
+        return false;
+    }
+    if (determinarCapicua(numero) == true){
+        existeCapicua2 = true;
+        return true;
+    }
+    else if (x >= 1 && existeCapicua2 == false){
+        return false;
+    }
+    if (determinarPrimo(numero) == true){
+        existePrimo2 = true;
+        return true;
+    }
+    else if (x >= 1 && existePrimo2 == false){
+        return false;
+    }
+}
 bool verificarTablero(t_tablero tableroJuego){
     /* Funcion recibe un tablero para determinar si
        cumple con las condiciones propuestas, de ser asi
@@ -497,19 +514,16 @@ bool verificarTablero(t_tablero tableroJuego){
         - Al menos un numero perteneciente a serie Fibonacci debe existir
     */
     bool  existePrimo=false, existeCapicua=false, existeFibo=false;
-    for(int i=0; i<FILAS; i++){
-        for (int j=0; j<COLUMNAS; j++){
-            if (determinarPrimo(tableroJuego[i][j]) == true){
+    for (int x=0; x<2; x++){
+        for (int i=0; i<4; i++){
+            if (determinarPrimo(tableroJuego[x][i]) == true){
                 existePrimo = true;
-                cout << "Primo ok" << endl;
             }
-            if (determinarCapicua(tableroJuego[i][j]) == true){
+            if (determinarCapicua(tableroJuego[x][i]) == true){
                 existeCapicua = true;
-                cout << "capicua ok" << endl;
             }
-            if (perteneceFibo(tableroJuego[i][j]) == true){
+            if (perteneceFibo(tableroJuego[x][i]) == true){
                 existeFibo = true;
-                cout << "Fibonacciiiiiiiiiiiiiiiiiiiiiiiii ok" << endl;
             }
         }
     }
