@@ -90,6 +90,7 @@ main(){
                 break;
             default:
                 cout << "Opcion no valida" << endl;
+                system("pause");
                 break;
         }
     }while (opcionElegida != 5);
@@ -130,16 +131,36 @@ void administracionJugadores(t_vector jugadores, int &ocupado){
     }while (opcionElegida != 4);
 }
 void generarTablero(t_tablero &tableroJuego){
-    cout << "Generando tablero..." << endl;
-    cout << "Esto puede tardar unos segundos" << endl;
-    int aleatorio;
+    /* Este procedimiento cumple la funcion de generar el tablero
+       de juego, incorporando la creacion de numeros aleatorios
+       que pasaran por una verificacion para comprobar si el numero
+       generado es adecuado para el juego.*/
+    int aleatorio, c1=0, c2=0;
     bool existeFibo2=false, existeCapicua2=false, existePrimo2=false;
     for (int x=0; x<2; x++){
         for (int i=0; i<4; i++){
-            do{
-                if (i % 2 == 0)
-                    tableroJuego[x][i] = generarNumero5Cifras();
+            aleatorio = rand() % 2 + 1;
+            /* Estos condicionales se encargan de que
+               se generen 4 numeros de 6 cifras y otros
+               4 numeros de 5 cifras*/
+            if (aleatorio == 1){
+                if (c1 > 3)
+                    aleatorio = 2;
                 else
+                    c1++;
+            }
+            else if(aleatorio == 2){
+                if (c2 > 3)
+                    aleatorio = 1;
+                else
+                    c2++;
+            }
+            do{
+                /* Dependiendo del numero aleatorio se generara uno
+                   de 5 cifras o de 6 cifras*/
+                if (aleatorio == 1)
+                    tableroJuego[x][i] = generarNumero5Cifras();
+                else if (aleatorio == 2)
                     tableroJuego[x][i] = generarNumero6Cifras();
             }while(verificarNumeroGenerado(tableroJuego[x][i], x, i, existeFibo2, existeCapicua2, existePrimo2) == false);
         }
