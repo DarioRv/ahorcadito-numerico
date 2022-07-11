@@ -22,7 +22,7 @@ typedef int t_numero[digitos];
 // MENU PRINCIPAL
 void administracionJugadores(t_vector jugadores, int &ocupado);
 void generarTablero(t_tablero &tableroJuego);
-void jugar(t_tablero tableroJuego, int &intentos, int i, int j);
+void jugar(t_tablero tableroJuego,t_vector jugadores, int ocupado, int intentos, int i, int j);
 
 
 //SUBMENUS
@@ -31,10 +31,11 @@ void registrarJugador(t_vector jugadores, int &ocupado);
 void modificarDatosJugador(t_vector jugadores, int ocupado);
 void listarJugadores(t_vector jugadores, int ocupado);
 //Submenu jugar
-void probarDigitos(t_tablero tableroJuego, int &i, int &j);
+void probarDigitos(t_vector jugadores, t_tablero tableroJuego, int indiceJugador, int &i, int &j, int intentos);
 void solicitarPista(t_tablero tableroJuego, int i, int j);
-void arriesgarSolucion(t_tablero tableroJuego, int &i, int &j);
+void arriesgarSolucion(t_vector jugadores, t_tablero tableroJuego, int indiceJugador, int &i, int &j, int intentos);
 //MODULOS COMPLEMENTARIOS
+void burbuja(t_vector vector, int ocupado);
 bool determinarPrimo(int numero);
 bool perteneceFibo(int numero);
 bool multiplo11(int num);
@@ -48,16 +49,17 @@ int busquedaJugador(t_vector a, int ocupado, t_cadena buscado);
 bool verificarNumeroGenerado(int numero, int x, int i, bool &existeFibo, bool &existeCapicua, bool &existePrimo);
 bool verificarTablero(t_tablero tableroJuego);
 void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOculto, int &ocupado);
-void verificarDigito(t_numero numeroJugado, t_numero numeroOculto, int ocupado, int digitoJugado);
+void verificarDigito(int numeroJugadoActual, t_numero numeroJugado, t_numero numeroOculto, int ocupado, int digitoJugado, int &intentos);
 void revelarNumero(t_numero numeroOriginal, t_numero numeroOculto, int ocupado, int posicionAcertada, int digitoJugado);
 bool control(t_numero numeroOriginal, t_numero numeroOculto, int ocupado);
 int seleccionarNumero(t_tablero tableroJuego, int &i, int &j);
-void SistemaPuntaje();
+void seleccionarJugador(t_vector jugadores, int ocupado, int &indiceJugador);
+void SistemaPuntaje(t_vector jugadores, int indiceJugador, int numero);
 
 main(){
     srand(time(NULL));
     t_vector jugadores; int ocupado = -1;
-    t_tablero tableroJuego; int intentos=5;
+    t_tablero tableroJuego; int intentos=3;
     int opcionElegida;
     int i, j;
     bool tableroGenerado = false;
@@ -89,7 +91,7 @@ main(){
                 break;
             case 3:
                 if (tableroGenerado == true){
-                    jugar(tableroJuego, intentos, i, j);
+                    jugar(tableroJuego, jugadores, ocupado, intentos, i, j);
                     tableroGenerado = false;
                 }
                 else{
@@ -180,11 +182,12 @@ void generarTablero(t_tablero &tableroJuego){
     cout << "El tablero ha sido generado" << endl;
     cout << "Puede comenzar el juego" << endl;
 }
-void jugar(t_tablero tableroJuego, int &intentos, int i, int j){
-    int opcionElegida;
+void jugar(t_tablero tableroJuego,t_vector jugadores, int ocupado, int intentos, int i, int j){
+    int opcionElegida, indiceJugador;
     i=0, j=0;
+    seleccionarJugador(jugadores, ocupado, indiceJugador);
     do{
-        system("cls");  
+        system("cls");
         cout << "************* JUGAR *************" << endl;
         cout << "1. Probar digitos" << endl;
         cout << "2. Solicitar pistas" << endl;
@@ -195,13 +198,13 @@ void jugar(t_tablero tableroJuego, int &intentos, int i, int j){
         cin >> opcionElegida;
         switch(opcionElegida){
             case 1:
-                probarDigitos(tableroJuego, i, j);
+                probarDigitos(jugadores, tableroJuego, indiceJugador, i, j, intentos);
                 break;
             case 2:
                 solicitarPista(tableroJuego, i, j);
                 break;
             case 3:
-                arriesgarSolucion(tableroJuego, i, j);
+                arriesgarSolucion(jugadores, tableroJuego, indiceJugador, i, j, intentos);
                 break;
             case 4:
                 cout << "Volviendo al menu principal" << endl;
@@ -226,11 +229,17 @@ void registrarJugador(t_vector jugadores, int &ocupado){
         cout << "REGISTRANDO JUGADOR, INGRESE DATOS" << endl;
         cout << "Nombre: ";
         fflush(stdin);
-        cin >> jugadores[ocupado].nombre;
-        cout << "Alias: ";
-        fflush(stdin);
-        cin >> jugadores[ocupado].alias;
+        gets(jugadores[ocupado].nombre);
+        do{
+            cout << "Alias: ";
+            fflush(stdin);
+            gets(jugadores[ocupado].alias);
+            //Comprobamos que el alias del jugador no este registrado
+            if (busquedaJugador(jugadores, ocupado-1, jugadores[ocupado].alias) != -1)
+                cout << "Este alias ya esta registrado, introduzca otro" << endl;
+        }while (busquedaJugador(jugadores, ocupado-1, jugadores[ocupado].alias) != -1);
         cout << "REGISTRO EXITOSO" << endl;
+        burbuja(jugadores, ocupado);
         system("pause");
     }
 }
@@ -241,7 +250,7 @@ void modificarDatosJugador(t_vector jugadores, int ocupado){
         t_cadena jugadorBuscado;
         cout << "Ingrese alias del jugador a modificar datos" << endl;
         fflush(stdin);
-        cin >> jugadorBuscado;
+        gets(jugadorBuscado);
         char eleccion;
         int i = busquedaJugador(jugadores, ocupado, jugadorBuscado);
         if(i != -1){
@@ -289,36 +298,43 @@ void listarJugadores(t_vector jugadores, int ocupado){
     system("pause");
 }
 //Submenu jugar
-void probarDigitos(t_tablero tableroJuego, int &i, int &j){
+void probarDigitos(t_vector jugadores, t_tablero tableroJuego, int indiceJugador, int &i, int &j, int intentos){
     t_numero numeroOriginal, numeroOculto;
-    int numeroJugado, ocupado;
+    int numeroJugado, ocupado, numeroJugadoActual;
     numeroJugado = seleccionarNumero(tableroJuego, i, j);
+    numeroJugadoActual = numeroJugado;
     ocultarNumero(numeroJugado, numeroOriginal, numeroOculto, ocupado);
     cout << "El numero jugado actual es: " << numeroJugado << endl;
-    
     char eleccion;
     int digitoJugado;
     do{
         do{
-        cout << "Ingrese numero: ";
-        cin >> digitoJugado;
-        if (digitoJugado < 0 || digitoJugado > 9)
-            cout << "Por favor, introduzca un digito del 1 al 9" << endl;
+            cout << "Jugador: " << jugadores[indiceJugador].alias << " " << jugadores[indiceJugador].nombre << endl;
+            cout << "Intentos restantes: " << intentos << endl;
+            cout << "Ingrese numero: ";
+            cin >> digitoJugado;
+            if (digitoJugado < 0 || digitoJugado > 9)
+                cout << "Por favor, introduzca un digito del 1 al 9" << endl;
         }while (digitoJugado < 0 || digitoJugado > 9);
-        verificarDigito(numeroOriginal, numeroOculto, ocupado, digitoJugado);
-        cout << "Desea probar otro numero? s/n" << endl;
-        do{
-            cin >> eleccion;
-            if (eleccion != 's' && eleccion != 'n')
-                cout << "Por favor, seleccione una opcion valida" << endl;
-        }while(eleccion != 's' && eleccion != 'n');
-
-    }while(eleccion == 's');
+        verificarDigito(numeroJugadoActual, numeroOriginal, numeroOculto, ocupado, digitoJugado, intentos);
+        if (intentos >= 1){
+            cout << "Desea probar otro numero? s/n" << endl;
+            do{
+                cin >> eleccion;
+                if (eleccion != 's' && eleccion != 'n')
+                    cout << "Por favor, seleccione una opcion valida" << endl;
+            }while(eleccion != 's' && eleccion != 'n');
+        }
+    }while(eleccion == 's' && intentos >=1);
 
     //Avanza solo si ya se ha acertado el numero en juego
-    if (control(numeroOriginal, numeroOculto, ocupado) == true){
+    if (control(numeroOriginal, numeroOculto, ocupado) == true || intentos == 0){
+        if (intentos == 0){
+            cout << "Intentos agotados, el numero secreto era:" << numeroJugado << endl;
+            cout << "Pasando al siguiente numero..." << endl;
+            system("pause");
+        }
         if (i <=1 && j<=3){
-            cout << "i: " << i << " j: " << j << endl;
             j++;
             if (j>3){
                 j=0;
@@ -329,6 +345,7 @@ void probarDigitos(t_tablero tableroJuego, int &i, int &j){
 }
 void solicitarPista(t_tablero tableroJuego, int i, int j){
     int numeroJuego = tableroJuego[i][j];
+    cout << "Pistas: " << endl;
     //Pista primo
     if (determinarPrimo(numeroJuego) == true)
         cout << "El numero es primo" << endl;
@@ -369,7 +386,7 @@ void solicitarPista(t_tablero tableroJuego, int i, int j){
     }
     system("pause");
 }
-void arriesgarSolucion(t_tablero tableroJuego, int &i, int &j){
+void arriesgarSolucion(t_vector jugadores, t_tablero tableroJuego, int indiceJugador, int &i, int &j, int intentos){
     int numero, numeroJuego=tableroJuego[i][j];
     cout << "Ingrese la solucion" << endl;
     cin >> numero;
@@ -388,6 +405,22 @@ void arriesgarSolucion(t_tablero tableroJuego, int &i, int &j){
     system("pause");
 }
 //MODULOS COMPLEMENTARIOS
+void burbuja(t_vector vector, int ocupado){
+    int i;
+    t_jugador aux;
+    bool ordenado=false;
+    while (ordenado == false){
+        ordenado = true;
+        for (i=0; i<ocupado; i++){
+            if (strcmp(vector[i].alias,vector[i+1].alias) == 1){ // < para decreciente
+                ordenado = false;
+                aux = vector[i];
+                vector[i] = vector[i+1];
+                vector[i+1] = aux;
+            }
+        }
+    }
+}
 bool determinarPrimo(int numero){
     int cantidadDivisores = 1;
     for (int x=2; x<numero; x++){
@@ -641,7 +674,7 @@ void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOc
     }
     cout <<endl;
 }
-void verificarDigito(t_numero numeroJugado, t_numero numeroOculto, int ocupado, int digitoJugado){
+void verificarDigito(int numeroJugadoActual, t_numero numeroJugado, t_numero numeroOculto, int ocupado, int digitoJugado, int &intentos){
     /* Este procedimiento verificará posicion por posicion si existe una coincidencia
        en el numero oculto (numero en juego) con el digito que introdujo el jugador.
        En caso de verdadero llamara al procedimiento revelarNumero, de lo contrario
@@ -654,8 +687,10 @@ void verificarDigito(t_numero numeroJugado, t_numero numeroOculto, int ocupado, 
             revelarNumero(numeroJugado, numeroOculto, ocupado, x, digitoJugado);
             acertado = true;
         }
-        else if(x == ocupado && acertado == false)
+        else if(x == ocupado && acertado == false){
             cout << "No has acertado ningun digito" << endl;
+            intentos--;
+        }
         x++;
     }
     
@@ -696,3 +731,48 @@ bool control(t_numero numeroOriginal, t_numero numeroOculto, int ocupado){
 int seleccionarNumero(t_tablero tableroJuego, int &i, int &j){
         return tableroJuego[i][j];
 }
+void seleccionarJugador(t_vector jugadores, int ocupado, int &indiceJugador){
+    if (ocupado == -1)
+        cout << "No hay jugadores registrados, registrese antes" << endl;
+    else{
+        /*listarJugadores(jugadores, ocupado);
+        cout << "Indique con el numero de jugador, quien esta jugando ahora" << endl;
+        cin >> indiceJugador;*/
+        t_cadena jugadorActual;
+        char respuesta;
+        do{
+            cout << "Ingrese el alias del jugador que esta jugando ahora: " << endl;
+            fflush(stdin);
+            gets(jugadorActual);
+            indiceJugador = busquedaJugador(jugadores, ocupado, jugadorActual);
+            if (indiceJugador == -1){
+                cout << "El jugador no existe" << endl;
+                cout << "Introduzca 'l' si quiere ver la lista de jugadores" << endl;
+                cout << "Introduzca 'n' para intentar con otro alias" << endl;
+                cin >> respuesta;
+                if (respuesta == 'l')
+                    listarJugadores(jugadores, ocupado);
+            }
+        }while (indiceJugador == -1);
+    }
+}
+/*void SistemaPuntaje(t_vector jugadores, int indiceJugador, int numero){
+    int puntajeTotal=0;
+    if (perteneceFibo(numero) == true){
+        puntajeTotal = puntajeTotal + 5;
+    }
+    else if (determinarCapicua(numero) == true){
+        puntajeTotal = puntajeTotal + 3;
+    }
+    else if (determinarPrimo(numero) == true){
+        puntajeTotal = puntajeTotal + 4;
+    }
+    else if ()
+
+
+}*/
+//Falta todo sobre el sistema de puntaje
+//Ordenar el vector, usar insercion, para hacer la busqueda binaria
+//Realizar una introduccion y explicaciones graficas
+
+/* ----------- FIN PROGRAMA ----------*/
