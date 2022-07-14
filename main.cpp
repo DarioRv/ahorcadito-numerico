@@ -477,7 +477,7 @@ void arriesgarSolucion(t_vector jugadores, t_tablero tableroJuego, int indiceJug
             cout << "Acertaste el numero!" << endl;
             SistemaPuntaje(jugadores, indiceJugador, numero, puntajeTotal);
             //Verificar si el numero era el ultimo del tablero
-            if (numeroJuego == tableroJuego[1][3]){
+            if (numeroJuego == tableroJuego[FILAS-1][COLUMNAS-1]){
                 jugadores[indiceJugador].partidasJugadas++;
                 jugadores[indiceJugador].puntaje = jugadores[indiceJugador].puntaje + puntajeTotal;
                 cout << "Tablero completado, fin de partida" << endl;
@@ -512,7 +512,7 @@ void arriesgarSolucion(t_vector jugadores, t_tablero tableroJuego, int indiceJug
         else{
             cout << "No acertaste!" << endl;
             //Verificar si el numero era el ultimo del tablero
-            if (numeroJuego == tableroJuego[1][3] && intentos == 0){
+            if (numeroJuego == tableroJuego[FILAS-1][COLUMNAS-1] && intentos == 0){
                 jugadores[indiceJugador].partidasJugadas++;
                 jugadores[indiceJugador].puntaje = jugadores[indiceJugador].puntaje + puntajeTotal;
                 cout << "Tablero completado, fin de partida" << endl;
