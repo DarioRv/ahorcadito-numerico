@@ -47,12 +47,10 @@ int generarNumero6Cifras();
 int generarNumero5Cifras();
 int busquedaJugador(t_vector a, int bajo, int alto, int central, t_cadena buscado);
 bool verificarNumeroGenerado(int numero, int x, int i, bool &existeFibo, bool &existeCapicua, bool &existePrimo);
-bool verificarTablero(t_tablero tableroJuego);
 void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOculto, int &ocupado);
 void verificarDigito(int numeroJugadoActual, t_numero numeroJugado, t_numero numeroOculto, int ocupado, int digitoJugado, int &intentos);
 void revelarNumero(t_numero numeroOriginal, t_numero numeroOculto, int ocupado, int posicionAcertada, int digitoJugado);
 bool control(t_numero numeroOriginal, t_numero numeroOculto, int ocupado);
-int seleccionarNumero(t_tablero tableroJuego, int &i, int &j);
 void seleccionarJugador(t_vector jugadores, int ocupado, int &indiceJugador);
 void SistemaPuntaje(t_vector jugadores, int indiceJugador, int numero, int &puntajeTotal);
 void ordenarRanking(t_vector jugadoresRanking, int ocupado);
@@ -81,12 +79,13 @@ main(){
                 break;
             case 2:
                 generarTablero(tableroJuego);
+                /* Con esto veo los numeros generados
                 for (int x=0; x<2; x++){
                     for (int i=0; i<4; i++){
                         cout << tableroJuego[x][i] << ", ";
                     }
                     cout <<endl;
-                }
+                }*/
                 system("pause");
                 tableroGenerado = true;
                 break;
@@ -196,6 +195,7 @@ void jugar(t_tablero tableroJuego,t_vector jugadores, int ocupado, int intentos,
     else
         intentos = 3;
     bool arriesgo = false, tableroCompleto=false;
+    //Seleccionamos al jugador
     seleccionarJugador(jugadores, ocupado, indiceJugador);
     if (indiceJugador != -1)
         cout << "Ingrese exitoso" << endl;
@@ -341,6 +341,7 @@ void probarDigitos(t_vector jugadores, t_tablero tableroJuego, int indiceJugador
     int numeroJugado, ocupado, numeroJugadoActual;
     numeroJugado = tableroJuego[i][j];
     numeroJugadoActual = numeroJugado;
+    //Ocultamos el numero que se esta jugando
     ocultarNumero(numeroJugado, numeroOriginal, numeroOculto, ocupado);
     char eleccion;
     int digitoJugado;
@@ -370,7 +371,7 @@ void probarDigitos(t_vector jugadores, t_tablero tableroJuego, int indiceJugador
     }while(eleccion == 's' && intentos >=1 && control(numeroOriginal, numeroOculto, ocupado) == false);
     system("cls");
     //Si el numero acertado es el ultimo del tablero
-    if (numeroJugado == tableroJuego[1][3]){
+    if (numeroJugado == tableroJuego[FILAS-1][COLUMNAS-1]){
         jugadores[indiceJugador].partidasJugadas++;
         jugadores[indiceJugador].puntaje = jugadores[indiceJugador].puntaje + puntajeTotal;
         cout << "Tablero completado, fin de partida" << endl;
@@ -390,6 +391,7 @@ void probarDigitos(t_vector jugadores, t_tablero tableroJuego, int indiceJugador
     if (control(numeroOriginal, numeroOculto, ocupado) == true || intentos == 0 && tableroCompleto == false){
         if (control(numeroOriginal, numeroOculto, ocupado) == true){
             SistemaPuntaje(jugadores, indiceJugador, numeroJugado, puntajeTotal);
+            //Avanzar en el tablero
             if (i <=1 && j<=3){
                 j++;
                 if (j>3){
@@ -404,6 +406,7 @@ void probarDigitos(t_vector jugadores, t_tablero tableroJuego, int indiceJugador
             else
                 intentos = 3;
         }
+        //Si se agotan los intentos debe arriesgar
         if (intentos == 0){
             cout << "Intentos agotados, debe arriesgar la solucion" << endl;
             arriesgarSolucion(jugadores, tableroJuego, indiceJugador, i, j, intentos, puntajeTotal, arriesgo, tableroCompleto);
@@ -490,6 +493,7 @@ void arriesgarSolucion(t_vector jugadores, t_tablero tableroJuego, int indiceJug
                 tableroCompleto = true;
                 system("pause");
             }
+            //Avanzar en la matriz
             if (i <=1 && j<=3){
                 j++;
                 if (j>3){
@@ -498,7 +502,7 @@ void arriesgarSolucion(t_vector jugadores, t_tablero tableroJuego, int indiceJug
                 }
                 
             }
-            arriesgo = false;
+            arriesgo = false; //Resetear el arriesgar
             // Resetear los intentos
             if (tableroJuego[i][j] <= 99999)
                 intentos = 2;
@@ -525,6 +529,7 @@ void arriesgarSolucion(t_vector jugadores, t_tablero tableroJuego, int indiceJug
                 system("pause");
             }
             if (intentos == 0){
+                //Avanzar en la matriz
                 if (i <=1 && j<=3){
                     j++;
                     if (j>3){
@@ -545,13 +550,15 @@ void arriesgarSolucion(t_vector jugadores, t_tablero tableroJuego, int indiceJug
 }
 //MODULOS COMPLEMENTARIOS
 void burbuja(t_vector vector, int ocupado){
+    /* Metodo de ordenacion que organizará el vector
+       en forma creciente*/
     int i;
     t_jugador aux;
     bool ordenado=false;
     while (ordenado == false){
         ordenado = true;
         for (i=0; i<ocupado; i++){
-            if (strcmp(vector[i].alias,vector[i+1].alias) == 1){ // < para decreciente
+            if (strcmp(vector[i].alias,vector[i+1].alias) == 1){
                 ordenado = false;
                 aux = vector[i];
                 vector[i] = vector[i+1];
@@ -561,6 +568,9 @@ void burbuja(t_vector vector, int ocupado){
     }
 }
 bool determinarPrimo(int numero){
+    /* Esta funcion recibe por parametro un numero
+       devolviendo true cuando el numero sea primo
+       o false si no es primo*/
     int cantidadDivisores = 1;
     for (int x=2; x<numero; x++){
         if (numero % x == 0)
@@ -572,6 +582,10 @@ bool determinarPrimo(int numero){
         return true;
 }
 bool perteneceFibo(int numero){
+    /* Esta funcion recibe por parametro un
+       numero y retornara true cuando este
+       pertenezca a la serie fibonacci
+       de lo contrario retornará false*/
     int limite, x1=1, x2=1, serie=1;
     limite = numero;
     for (int x = 1; x < limite; x++){
@@ -585,6 +599,9 @@ bool perteneceFibo(int numero){
     }
 }
 bool multiplo11(int num){
+    /* Funcion que recibe por parametro un numero
+       y devolvera true cuando sea multiplo de 11
+       o false si no es multiplo de 11*/
     int resto = 0, cociente = 0, suma = 0, i, sumaPar = 0, sumaImpar = 0, diferencia = 0;
     bool finalizacion, unDigito;
     if (num > 9)
@@ -636,6 +653,9 @@ bool multiplo11(int num){
     }
 }
 bool multiploTres(int numero){
+    /* Funcion que recibe por parametro un numero
+       y devolvera true cuando sea multiplo de 3
+       o false si no es multiplo de 3*/
     bool unDigito;
     int resto=0, suma=0, cociente=0;
 
@@ -668,6 +688,9 @@ bool multiploTres(int numero){
         return false;
 }
 bool determinarCapicua(int numero){
+    /* Funcion que recibe por parametro un
+       numero, retornara true si el numero es
+       capicua o false si no es capicua*/
     int digito, cantidadDigitos=0, numeroInverso=0, numeroOriginal=numero;
     do{
         digito = numero % 10;
@@ -681,6 +704,9 @@ bool determinarCapicua(int numero){
         return false;
 }
 bool digitosDistintos(int numero){
+    /* Funcion que recibe por parametro un numero
+       y retornara true si todos sus digitos son distintos
+       o false si sus digitos se repiten*/
     int digito, cociente, cociente2, numero2, digito2;
     while (numero != 0){
         digito = numero % 10;
@@ -696,12 +722,16 @@ bool digitosDistintos(int numero){
     return true;
 }
 bool determinarPar(int numero){
+    /* Funcion que recibe por parametro un numero
+       y retornara true si es par o false si es impar*/
     if (numero % 2 == 0)
         return true;
     else
         return false;
 }
 int generarNumero6Cifras(){
+    /* Funcion que genera aleatoriamente
+       un numero de 6 cifras y lo retornara*/
     int valor, valor2, random;
     do{
         valor = rand() % 999 + 100; //Genera entre 100 y 999
@@ -713,6 +743,8 @@ int generarNumero6Cifras(){
     }while(!(random <= 999999 && random > 99999));
 }
 int generarNumero5Cifras(){
+    /* Funcion que genera aleatoriamente
+       un numero de 5 cifras y lo retornara*/
     int valor, valor2, random;
     do{
         valor = rand() % 99 + 10; //Genera entre 10 y 99
@@ -748,6 +780,10 @@ int busquedaJugador(t_vector a, int bajo, int alto, int central, t_cadena buscad
     }
 }
 bool verificarNumeroGenerado(int numero, int x, int i, bool &existeFibo2, bool &existeCapicua2, bool &existePrimo2){
+    /* Funcion que recibe por parametro un numero, dos indices y tres valores booleanos
+       con los que determinará si el numero pertenece a fibonacci o primo o capicua
+       retornará true en caulquiera de los tres casos, los indices son a forma
+       de forzar un numero si no aparece durante la generacion de la primera fila*/
     if (perteneceFibo(numero) == true){
         existeFibo2 = true;
         return true;
@@ -769,35 +805,6 @@ bool verificarNumeroGenerado(int numero, int x, int i, bool &existeFibo2, bool &
     else if (x >= 1 && existePrimo2 == false){
         return false;
     }
-}
-bool verificarTablero(t_tablero tableroJuego){
-    /* Funcion recibe un tablero para determinar si
-       cumple con las condiciones propuestas, de ser asi
-       retornara true. De lo contrario retornara false
-        Condiciones para tablero aceptable:
-        - Al menos un numero primo debe existir
-        - Al menos un numero capicua debe existir
-        - Al menos un numero perteneciente a serie Fibonacci debe existir
-    */
-    bool  existePrimo=false, existeCapicua=false, existeFibo=false;
-    for (int x=0; x<2; x++){
-        for (int i=0; i<4; i++){
-            if (determinarPrimo(tableroJuego[x][i]) == true){
-                existePrimo = true;
-            }
-            if (determinarCapicua(tableroJuego[x][i]) == true){
-                existeCapicua = true;
-            }
-            if (perteneceFibo(tableroJuego[x][i]) == true){
-                existeFibo = true;
-            }
-        }
-    }
-    
-    if (existePrimo == true && existeFibo == true && existeCapicua == true)
-        return true;
-    else
-        return false;
 }
 void ocultarNumero(int numeroJugado, t_numero &numeroOriginal, t_numero numeroOculto, int &ocupado){
     /* Este procedimiento coloca los digitos en un vector para ir mostrandolos
@@ -867,7 +874,7 @@ void revelarNumero(t_numero numeroOriginal, t_numero numeroOculto, int ocupado, 
 }
 bool control(t_numero numeroOriginal, t_numero numeroOculto, int ocupado){
     /* Este procedimiento cumple la funcion de verificar si el numero en juego
-       fue acertado por el jugador*/
+       fue acertado por el jugador, retornara true si es asi de lo contrario retorna false*/
     bool numeroCompletado=true;
     for (int x=0; x<=ocupado; x++){
         if (numeroOriginal[x] != numeroOculto[x])
@@ -878,10 +885,9 @@ bool control(t_numero numeroOriginal, t_numero numeroOculto, int ocupado){
     else
         return false;
 }
-int seleccionarNumero(t_tablero tableroJuego, int &i, int &j){
-        return tableroJuego[i][j];
-}
 void seleccionarJugador(t_vector jugadores, int ocupado, int &indiceJugador){
+    /* Este procedimiento cumple la funcion de seleccionar al jugador
+       que este jugando la partida mediante su indice en el vector*/
     if (ocupado == -1){
         cout << "No hay jugadores registrados, registrese antes" << endl;
         indiceJugador = -1;
@@ -908,6 +914,8 @@ void seleccionarJugador(t_vector jugadores, int ocupado, int &indiceJugador){
     }
 }
 void SistemaPuntaje(t_vector jugadores, int indiceJugador, int numero, int &puntajeTotal){
+    /* Procedimiento encargado de sumar los correspondientes puntos
+       por cada numero acertado*/
     //Fibonacci suma 30 puntos
     if (perteneceFibo(numero) == true){
         //Condicional para saber si el numero es de 6 digitos o de 5
@@ -972,6 +980,9 @@ void SistemaPuntaje(t_vector jugadores, int indiceJugador, int numero, int &punt
     system("pause");
 }
 void ordenarRanking(t_vector jugadoresRanking, int ocupado){
+    /* Procedimiento encargado de ordenar
+       el vector de ranking tomando en
+       cuenta el puntaje de los jugadores*/
     int i, j;
     t_jugador aux;
     for (i=0; i<ocupado; i++){
